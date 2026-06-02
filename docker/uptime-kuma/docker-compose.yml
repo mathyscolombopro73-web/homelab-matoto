@@ -1,0 +1,24 @@
+# Uptime Kuma — Supervision des services (style UptimeRobot)
+# URL : http://10.20.0.20:3001
+# Première connexion : créer un compte admin
+
+services:
+  uptime-kuma:
+    image: louislam/uptime-kuma:latest
+    container_name: uptime-kuma
+    restart: unless-stopped
+    ports:
+      - "3001:3001"
+    volumes:
+      - uptime_kuma_data:/app/data
+    # Permet à Uptime Kuma de surveiller les conteneurs Docker locaux
+    environment:
+      - TZ=Europe/Paris
+
+volumes:
+  uptime_kuma_data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /opt/homelab/uptime-kuma

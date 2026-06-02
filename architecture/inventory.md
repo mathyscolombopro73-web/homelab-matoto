@@ -1,232 +1,108 @@
-\# Inventaire - Homelab MATOTO
-
-
-
-\## Objectif
-
-
-
-Ce document recense les machines principales du homelab.
-
-
-
-Il permet de garder une vision claire de l’infrastructure :
-
-
-
-\- noms des machines ;
-
-\- rôles ;
-
-\- systèmes installés ;
-
-\- adresses IP ;
-
-\- services hébergés ;
-
-\- état actuel.
-
-
-
-\## Domaine local
-
-
-
-`homelab.matoto.local`
-
-
-
-\## Vue d’ensemble
-
-
-
-| Hôte | Rôle | Système | VLAN | Adresse IP | Statut |
-
-|---|---|---|---:|---|---|
-
-| `pfSense` | Firewall / routeur | pfSense | 10 / 20 / 30 / 99 | `192.168.x.1` | Prévu |
-
-| `pve-01` | Hyperviseur | Proxmox VE 8.2 | 20 | `192.168.20.10` | Prévu |
-
-| `srv-02` | Serveur applicatif | Debian + Docker | 20 | `192.168.20.20` | Prévu |
-
-| `nas-01` | Stockage centralisé | TrueNAS | 20 | `192.168.20.30` | Prévu |
-
-| `dns-01` | DNS local | Pi-hole | 20 | `192.168.20.40` | Prévu |
-
-| `mon-01` | Monitoring | Grafana / Prometheus | 20 | `192.168.20.50` | Prévu |
-
-| `git-01` | Forge Git | Gitea | 20 | `192.168.20.60` | Prévu |
-
-| `backup-01` | Sauvegardes | restic | 20 | `192.168.20.70` | Prévu |
-
-
-
-\## Machines principales
-
-
-
-\## pfSense
-
-
-
-\### Rôle
-
-
-
-`pfSense` est le routeur et firewall principal du homelab.
-
-
-
-Il gère :
-
-
-
-\- l’accès Internet ;
-
-\- le NAT ;
-
-\- les VLAN ;
-
-\- le routage inter-VLAN ;
-
-\- les règles firewall ;
-
-\- le VPN WireGuard ;
-
-\- le DHCP selon les VLAN ;
-
-\- éventuellement le DNS de secours.
-
-
-
-\### Interfaces prévues
-
-
-
-| Interface | Rôle | Réseau |
-
-|---|---|---|
-
-| WAN | Accès Internet | Fourni par l’opérateur |
-
-| LAN | Administration | `192.168.10.0/24` |
-
-| VLAN 20 | Serveurs | `192.168.20.0/24` |
-
-| VLAN 30 | IOT | `192.168.30.0/24` |
-
-| VLAN 99 | DMZ | `192.168.99.0/24` |
-
-| WireGuard | VPN | `10.10.10.0/24` |
-
-
-
-\### Adresse IP prévue
-
-
-
-| Interface | Adresse |
-
-|---|---|
-
-| LAN | `192.168.10.1` |
-
-| SRV | `192.168.20.1` |
-
-| IOT | `192.168.30.1` |
-
-| DMZ | `192.168.99.1` |
-
-
-
-\---
-
-
-
-\## pve-01
-
-
-
-\### Rôle
-
-
-
-`pve-01` est l’hyperviseur principal du homelab.
-
-
-
-Il héberge les machines virtuelles et les conteneurs LXC.
-
-
-
-\### Informations
-
-
-
-| Élément | Valeur |
-
-|---|---|
-
-| Nom | `pve-01` |
-
-| Système | Proxmox VE 8.2 |
-
-| VLAN | 20 SRV |
-
-| Adresse IP | `192.168.20.10` |
-
-| Rôle | Virtualisation |
-
-| Charge prévue | 9 VMs / 6 LXC |
-
-| Statut | Prévu |
-
-
-
-\### Services hébergés possibles
-
-
-
-| Service | Type | Rôle |
-
-|---|---|---|
-
-| `dns-01` | LXC | Pi-hole |
-
-| `mon-01` | VM | Grafana / Prometheus |
-
-| `backup-01` | LXC | restic |
-
-| `lab-linux-01` | VM | Tests Linux |
-
-| `web-dmz-01` | VM | Service web isolé |
-
-| `docker-test-01` | VM | Tests Docker |
-
-
-
-\### Notes
-
-
-
-L’accès à l’interface Proxmox doit être autorisé uniquement depuis :
-
-
-
-\- VLAN 10 LAN ;
-
-\- VPN WireGuard ;
-
-\- éventuellement un poste d’administration dédié.
-
-
-
-L’interface Web Proxmox utilise le port :
-
-
-
-```text
-
-8006/TCP
-
+# Inventaire — Homelab MATOTO
+
+Recensement de toutes les machines et services du lab.
+
+---
+
+## Machines virtuelles et conteneurs
+
+| Hôte     | Type | Rôle                | Système         | IP Réseau lab    | Gateway      | Statut   |
+|----------|------|---------------------|-----------------|------------------|--------------|----------|
+| `pve-01` | Hôte | Hyperviseur         | Proxmox VE 9.1  | DHCP 192.168.1.X | 192.168.1.1  | Prévu    |
+| `fw-01`  | VM   | Firewall / Routeur  | pfSense         | WAN: 192.168.1.50 / LAN: 10.20.0.1 | — | Prévu |
+| `srv-02` | VM   | Services Docker     | Debian 12       | 10.20.0.20/24    | 10.20.0.1    | Prévu    |
+| `nas-01` | VM   | Stockage ZFS        | TrueNAS Scale   | 10.20.0.30/24    | 10.20.0.1    | Prévu    |
+| `dns-01` | LXC  | DNS local           | Debian + Pi-hole | 10.20.0.40/24   | 10.20.0.1    | Prévu    |
+
+---
+
+## Services hébergés sur srv-02 (Docker)
+
+| Service             | Port interne | Port exposé | URL locale                          |
+|---------------------|--------------|-------------|-------------------------------------|
+| Portainer           | 9000         | 9000        | http://10.20.0.20:9000              |
+| Uptime Kuma         | 3001         | 3001        | http://10.20.0.20:3001              |
+| Homepage            | 3000         | 3000        | http://10.20.0.20:3000              |
+| Grafana             | 3000         | 3002        | http://10.20.0.20:3002              |
+| Prometheus          | 9090         | 9090        | http://10.20.0.20:9090              |
+| Gitea               | 3000         | 3003        | http://10.20.0.20:3003              |
+| Nginx Proxy Manager | 80/81/443    | 80/81/443   | http://10.20.0.20:81 (admin)        |
+
+---
+
+## Détail des machines
+
+### pve-01 — Proxmox VE
+
+| Élément       | Valeur                        |
+|---------------|-------------------------------|
+| Rôle          | Hyperviseur                   |
+| OS            | Proxmox VE 9.1                |
+| IP management | DHCP depuis la box (192.168.1.X) |
+| WebUI         | https://192.168.1.X:8006      |
+| Bridges       | vmbr0 (maison), vmbr1 (lab)   |
+| RAM conseillée | 16 Go minimum                |
+| Stockage      | SSD recommandé pour les VMs   |
+
+---
+
+### fw-01 — pfSense
+
+| Élément       | Valeur                        |
+|---------------|-------------------------------|
+| Rôle          | Firewall, NAT, routeur, DHCP  |
+| OS            | pfSense CE ou Plus            |
+| WAN           | vmbr0 — IP: 192.168.1.50/24   |
+| LAN           | vmbr1 — IP: 10.20.0.1/24      |
+| DHCP LAN      | 10.20.0.100 à 10.20.0.200     |
+| DNS LAN       | 10.20.0.40 (Pi-hole) puis 1.1.1.1 |
+| WebUI         | http://192.168.1.50 ou https://10.20.0.1 |
+| RAM VM        | 1 Go                          |
+| CPU VM        | 2 vCPU                        |
+| Disque VM     | 10 Go                         |
+
+---
+
+### srv-02 — Debian Docker
+
+| Élément       | Valeur                        |
+|---------------|-------------------------------|
+| Rôle          | Serveur applicatif Docker     |
+| OS            | Debian 12 Bookworm            |
+| IP            | 10.20.0.20/24                 |
+| Gateway       | 10.20.0.1                     |
+| DNS           | 10.20.0.40 (Pi-hole)          |
+| RAM VM        | 4 Go (8 Go conseillés)        |
+| CPU VM        | 2–4 vCPU                      |
+| Disque VM     | 50 Go minimum                 |
+
+---
+
+### nas-01 — TrueNAS
+
+| Élément       | Valeur                        |
+|---------------|-------------------------------|
+| Rôle          | Stockage ZFS de test          |
+| OS            | TrueNAS Scale                 |
+| IP            | 10.20.0.30/24                 |
+| Gateway       | 10.20.0.1                     |
+| WebUI         | http://10.20.0.30             |
+| RAM VM        | 8 Go minimum (ZFS exigeant)   |
+| CPU VM        | 2 vCPU                        |
+| Disque système | 32 Go                        |
+| Disque data   | 1 disque de test (ex: 50 Go)  |
+
+---
+
+### dns-01 — Pi-hole (LXC)
+
+| Élément       | Valeur                        |
+|---------------|-------------------------------|
+| Rôle          | DNS local et filtrage         |
+| OS            | Debian 12 (LXC)               |
+| IP            | 10.20.0.40/24                 |
+| Gateway       | 10.20.0.1                     |
+| WebUI         | http://10.20.0.40/admin       |
+| RAM LXC       | 512 Mo                        |
+| CPU LXC       | 1 vCPU                        |
+| Disque LXC    | 8 Go                          |

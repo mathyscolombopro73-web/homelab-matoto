@@ -1,0 +1,28 @@
+# Homepage — Dashboard du homelab
+# URL : http://10.20.0.20:3000
+# Documentation : https://gethomepage.dev/
+
+services:
+  homepage:
+    image: ghcr.io/gethomepage/homepage:latest
+    container_name: homepage
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    volumes:
+      # Fichiers de configuration Homepage
+      - homepage_config:/app/config
+      # Accès optionnel au socket Docker (pour afficher les infos des conteneurs)
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    environment:
+      - TZ=Europe/Paris
+      # Activer l'intégration Docker (optionnel)
+      - HOMEPAGE_VAR_DOCKER_HOST=unix:///var/run/docker.sock
+
+volumes:
+  homepage_config:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /opt/homelab/homepage

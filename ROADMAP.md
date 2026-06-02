@@ -1,186 +1,139 @@
-\# Roadmap Homelab MATOTO
+# Roadmap Homelab MATOTO
 
+Feuille de route progressive du projet. Chaque phase doit être validée avant de passer à la suivante.
 
+---
 
-\## Phase 0 - Préparation du projet
+## Phase 1 — Installation Proxmox
 
+- [ ] Télécharger l'ISO Proxmox VE 9.1
+- [ ] Créer une clé USB bootable (Rufus ou Balena Etcher)
+- [ ] Installer Proxmox VE sur le PC
+- [ ] Configurer le réseau de management (bridge vmbr0)
+- [ ] Accéder à l'interface web : `https://192.168.1.X:8006`
+- [ ] Appliquer les paramètres post-installation (dépôts, mises à jour)
+- [ ] Désactiver les alertes d'abonnement (non-subscription repo)
 
+**Référence :** [proxmox/install-proxmox.md](proxmox/install-proxmox.md)
 
-\- \[x] Créer le dépôt GitHub
+---
 
-\- \[x] Créer la structure des dossiers
+## Phase 2 — Réseau interne vmbr1
 
-\- \[x] Créer le fichier PROJECT.md
+- [ ] Créer le bridge `vmbr1` dans Proxmox (sans IP)
+- [ ] Vérifier la configuration dans `/etc/network/interfaces`
+- [ ] Appliquer sans casser l'accès à Proxmox
+- [ ] Documenter la configuration réseau
 
-\- \[x] Créer le fichier ROADMAP.md
+**Référence :** [proxmox/network-bridges.md](proxmox/network-bridges.md)
 
-\- \[ ] Rédiger le README principal
+---
 
+## Phase 3 — VM pfSense (fw-01)
 
+- [ ] Télécharger l'ISO pfSense
+- [ ] Créer la VM avec 2 cartes réseau (vmbr0 + vmbr1)
+- [ ] Installer pfSense
+- [ ] Assigner WAN (vmbr0) et LAN (vmbr1)
+- [ ] Configurer le WAN : IP statique 192.168.1.50/24
+- [ ] Désactiver "Block private networks" sur le WAN
+- [ ] Configurer le LAN : 10.20.0.1/24
+- [ ] Activer le DHCP LAN : 10.20.0.100–200
+- [ ] Vérifier l'accès à l'interface web pfSense depuis le réseau maison
+- [ ] Tester la connectivité Internet depuis le LAN
 
-\## Phase 1 - Conception réseau
+**Référence :** [network/pfsense-setup.md](network/pfsense-setup.md)
 
+---
 
+## Phase 4 — VM Debian Docker (srv-02)
 
-\- \[ ] Définir le plan d’adressage IP
+- [ ] Télécharger l'ISO Debian 12 (Bookworm)
+- [ ] Créer la VM connectée à vmbr1
+- [ ] Installer Debian (mode minimal)
+- [ ] Configurer l'IP statique : 10.20.0.20/24 — GW : 10.20.0.1
+- [ ] Installer Docker et Docker Compose
+- [ ] Vérifier la connectivité et le DNS
+- [ ] Tester Docker avec `docker run hello-world`
 
-\- \[ ] Documenter les VLAN
+**Référence :** [proxmox/create-debian-vm.md](proxmox/create-debian-vm.md)
 
-\- \[ ] Documenter les zones réseau
+---
 
-\- \[ ] Prévoir les règles firewall principales
+## Phase 5 — LXC Pi-hole (dns-01)
 
-\- \[ ] Prévoir les accès VPN
+- [ ] Télécharger le template Debian LXC dans Proxmox
+- [ ] Créer le conteneur LXC connecté à vmbr1
+- [ ] Configurer l'IP statique : 10.20.0.40/24 — GW : 10.20.0.1
+- [ ] Installer Pi-hole
+- [ ] Configurer pfSense pour utiliser Pi-hole comme DNS du LAN
+- [ ] Tester la résolution DNS depuis srv-02
+- [ ] Vérifier le filtrage DNS dans le dashboard Pi-hole
 
-\- \[ ] Créer le schéma réseau
+**Référence :** [proxmox/create-pihole-lxc.md](proxmox/create-pihole-lxc.md)
 
+---
 
+## Phase 6 — VM TrueNAS (nas-01)
 
-\## Phase 2 - Firewall et routage
+- [ ] Télécharger l'ISO TrueNAS Scale
+- [ ] Créer la VM avec disque système + disque data de test
+- [ ] Installer TrueNAS
+- [ ] Configurer l'IP statique : 10.20.0.30/24 — GW : 10.20.0.1
+- [ ] Créer un pool ZFS de test
+- [ ] Créer des datasets (données, sauvegardes)
+- [ ] Configurer un partage SMB ou NFS de test
+- [ ] Tester l'accès depuis srv-02
 
+**Référence :** [proxmox/create-truenas-vm.md](proxmox/create-truenas-vm.md)
 
+---
 
-\- \[ ] Installer ou documenter pfSense
+## Phase 7 — Services Docker
 
-\- \[ ] Configurer WAN
+- [ ] Déployer Portainer (gestion Docker)
+- [ ] Déployer Uptime Kuma (supervision)
+- [ ] Déployer Homepage (dashboard)
+- [ ] Déployer Nginx Proxy Manager (reverse proxy)
+- [ ] Déployer Gitea (forge Git)
+- [ ] Tester chaque service depuis le réseau lab
 
-\- \[ ] Configurer LAN
+**Référence :** [docker/README.md](docker/README.md)
 
-\- \[ ] Configurer les VLAN
+---
 
-\- \[ ] Configurer le DHCP par VLAN
+## Phase 8 — Monitoring
 
-\- \[ ] Configurer les règles firewall
+- [ ] Déployer Prometheus
+- [ ] Déployer Grafana
+- [ ] Ajouter Node Exporter sur srv-02 et nas-01
+- [ ] Importer les dashboards Grafana (système, Docker)
+- [ ] Configurer Uptime Kuma pour surveiller les services critiques
+- [ ] Configurer les alertes (optionnel)
 
-\- \[ ] Configurer WireGuard
+**Référence :** [services/grafana.md](services/grafana.md)
 
+---
 
+## Phase 9 — Sécurité
 
-\## Phase 3 - Virtualisation
+- [ ] Durcir SSH sur toutes les machines (clé publique, désactiver root)
+- [ ] Changer les mots de passe par défaut sur pfSense, TrueNAS, Pi-hole
+- [ ] Vérifier les règles firewall pfSense
+- [ ] Mettre en place une politique de secrets (aucun secret dans Git)
+- [ ] Documenter les services exposés
 
+**Référence :** [security/hardening.md](security/hardening.md)
 
+---
 
-\- \[ ] Installer ou documenter Proxmox VE
+## Phase 10 — Sauvegardes et documentation finale
 
-\- \[ ] Créer les bridges réseau
+- [ ] Configurer les sauvegardes Proxmox (snapshots VM)
+- [ ] Mettre en place restic pour les données importantes
+- [ ] Vérifier la procédure de restauration
+- [ ] Compléter toute la documentation
+- [ ] Nettoyer les fichiers inutiles du dépôt
+- [ ] Créer un tag Git `v1.0`
 
-\- \[ ] Prévoir les VMs
-
-\- \[ ] Prévoir les conteneurs LXC
-
-\- \[ ] Documenter les snapshots
-
-\- \[ ] Documenter les sauvegardes Proxmox
-
-
-
-\## Phase 4 - Services Docker
-
-
-
-\- \[ ] Installer ou documenter Debian Docker
-
-\- \[ ] Prévoir les conteneurs
-
-\- \[ ] Documenter les volumes
-
-\- \[ ] Documenter les réseaux Docker
-
-\- \[ ] Déployer Grafana
-
-\- \[ ] Déployer Gitea
-
-\- \[ ] Déployer Pi-hole
-
-\- \[ ] Déployer les services complémentaires
-
-
-
-\## Phase 5 - Stockage
-
-
-
-\- \[ ] Installer ou documenter TrueNAS
-
-\- \[ ] Définir les pools ZFS
-
-\- \[ ] Définir les datasets
-
-\- \[ ] Configurer SMB ou NFS
-
-\- \[ ] Configurer les snapshots
-
-\- \[ ] Documenter la capacité disponible
-
-
-
-\## Phase 6 - Sauvegardes
-
-
-
-\- \[ ] Définir les données critiques
-
-\- \[ ] Configurer restic
-
-\- \[ ] Planifier les sauvegardes
-
-\- \[ ] Chiffrer les sauvegardes
-
-\- \[ ] Tester une restauration
-
-\- \[ ] Documenter la procédure de restauration
-
-
-
-\## Phase 7 - Monitoring
-
-
-
-\- \[ ] Déployer Grafana
-
-\- \[ ] Déployer Prometheus ou équivalent
-
-\- \[ ] Ajouter les métriques système
-
-\- \[ ] Ajouter les métriques réseau
-
-\- \[ ] Ajouter les métriques stockage
-
-\- \[ ] Créer les dashboards
-
-
-
-\## Phase 8 - Sécurité
-
-
-
-\- \[ ] Durcir SSH
-
-\- \[ ] Limiter les accès admin
-
-\- \[ ] Vérifier les règles inter-VLAN
-
-\- \[ ] Isoler l’IOT
-
-\- \[ ] Isoler la DMZ
-
-\- \[ ] Documenter les bonnes pratiques
-
-
-
-\## Phase 9 - Documentation finale
-
-
-
-\- \[ ] Compléter le README
-
-\- \[ ] Compléter la documentation réseau
-
-\- \[ ] Compléter la documentation services
-
-\- \[ ] Ajouter les schémas
-
-\- \[ ] Ajouter les captures utiles
-
-\- \[ ] Nettoyer les informations sensibles
-
+**Référence :** [operations/backup-restore.md](operations/backup-restore.md)

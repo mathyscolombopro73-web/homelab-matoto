@@ -1,0 +1,37 @@
+# Exemple de configuration /etc/network/interfaces sur pve-01
+# avec vmbr0 (réseau maison) et vmbr1 (réseau interne lab)
+#
+# ATTENTION : adapter les valeurs à ton installation :
+#   - Remplacer "enp3s0" par le nom de ta carte réseau (voir: ip link)
+#   - Remplacer 192.168.1.10 par l'IP réelle de ton Proxmox
+#   - Remplacer 192.168.1.1 par la gateway de ta box
+#
+# NE PAS modifier ce fichier directement en production sans accès physique au serveur.
+# Préférer l'interface web Proxmox (Node → Network → Apply Configuration).
+
+auto lo
+iface lo inet loopback
+
+# Carte réseau physique (mode manual, elle est liée à vmbr0)
+iface enp3s0 inet manual
+
+# vmbr0 — Bridge réseau maison
+# Connecté à la carte physique, donne accès à Internet et au réseau 192.168.1.0/24
+auto vmbr0
+iface vmbr0 inet static
+    address 192.168.1.10/24
+    gateway 192.168.1.1
+    bridge-ports enp3s0
+    bridge-stp off
+    bridge-fd 0
+    # DNS (optionnel, Proxmox utilise /etc/resolv.conf)
+    dns-nameservers 1.1.1.1 8.8.8.8
+
+# vmbr1 — Bridge réseau interne lab
+# Pas de ports physiques, pas d'IP sur Proxmox
+# Le routage 10.20.0.0/24 est géré par pfSense (fw-01)
+auto vmbr1
+iface vmbr1 inet manual
+    bridge-ports none
+    bridge-stp off
+    bridge-fd 0

@@ -1,0 +1,86 @@
+# ============================================================
+# .gitignore — Homelab MATOTO
+# Exclure tout fichier sensible ou binaire volumieux du dépôt
+# ============================================================
+
+# --- Secrets et données sensibles ---
+.env
+.env.*
+!.env.example
+*.key
+*.pem
+*.crt
+*.csr
+*.p12
+*.pfx
+*.ovpn
+*.conf.bak
+secrets/
+private/
+credentials/
+
+# --- VPN ---
+wireguard/
+wg*.conf
+peers/
+
+# --- Sauvegardes ---
+backups/
+!backups/.gitkeep
+*.backup
+*.bak
+*.dump
+*.sql.gz
+
+# --- Archives et ISO ---
+*.tar
+*.tar.gz
+*.tar.bz2
+*.tar.xz
+*.zip
+*.rar
+*.7z
+*.gz
+*.bz2
+
+# --- Images disque virtuelles ---
+*.qcow2
+*.vmdk
+*.vdi
+*.ova
+*.ovf
+*.iso
+*.img
+
+# --- Terraform ---
+terraform.tfstate
+terraform.tfstate.backup
+.terraform/
+*.tfvars
+!*.tfvars.example
+
+# --- Ansible ---
+*.vault
+vault_pass.txt
+
+# --- Docker ---
+docker-compose.override.yml
+
+# --- Logs ---
+*.log
+logs/
+
+# --- OS et éditeurs ---
+.DS_Store
+Thumbs.db
+desktop.ini
+*.swp
+*.swo
+*~
+.vscode/
+.idea/
+*.iml
+
+# --- pfSense ---
+# Exports pfSense contiennent des mots de passe
+# config.xml  ← ne pas commiter (contient des secrets)

@@ -1,0 +1,41 @@
+# prometheus.yml — Configuration de base Prometheus pour le homelab
+# Fichier placé dans docker/grafana-prometheus/prometheus.yml
+
+global:
+  scrape_interval: 15s      # Fréquence de collecte
+  evaluation_interval: 15s  # Fréquence d'évaluation des règles
+
+scrape_configs:
+  # Prometheus se supervise lui-même
+  - job_name: "prometheus"
+    static_configs:
+      - targets: ["localhost:9090"]
+
+  # Métriques système de srv-02 (Node Exporter)
+  - job_name: "node-srv-02"
+    static_configs:
+      - targets: ["node-exporter:9100"]
+    labels:
+      instance: "srv-02"
+      role: "docker-host"
+
+  # Métriques Docker via cAdvisor (optionnel, à déployer séparément)
+  # - job_name: "cadvisor"
+  #   static_configs:
+  #     - targets: ["cadvisor:8080"]
+
+  # Node Exporter sur nas-01 (si installé)
+  # - job_name: "node-nas-01"
+  #   static_configs:
+  #     - targets: ["10.20.0.30:9100"]
+  #   labels:
+  #     instance: "nas-01"
+  #     role: "storage"
+
+  # Node Exporter sur dns-01 (si installé)
+  # - job_name: "node-dns-01"
+  #   static_configs:
+  #     - targets: ["10.20.0.40:9100"]
+  #   labels:
+  #     instance: "dns-01"
+  #     role: "dns"

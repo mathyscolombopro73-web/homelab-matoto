@@ -1,0 +1,33 @@
+%%{init: {'theme': 'dark'}}%%
+graph TD
+    PC["💻 PC Principal\n192.168.1.X"]
+    BOX["📡 Box Internet\n192.168.1.1"]
+
+    PVE["🖥️ pve-01\nProxmox VE 9.1\n192.168.1.X"]
+
+    subgraph BRIDGES["Bridges Proxmox"]
+        VMBR0["vmbr0\nRéseau maison"]
+        VMBR1["vmbr1\nRéseau interne lab\n(sans IP sur Proxmox)"]
+    end
+
+    subgraph LAB["Réseau Lab 10.20.0.0/24"]
+        FW["🔥 fw-01\npfSense\nWAN: 192.168.1.50\nLAN: 10.20.0.1"]
+        SRV["🐳 srv-02\nDebian + Docker\n10.20.0.20"]
+        NAS["💾 nas-01\nTrueNAS\n10.20.0.30"]
+        DNS["🔒 dns-01\nPi-hole LXC\n10.20.0.40"]
+    end
+
+    INTERNET["🌐 Internet"]
+
+    PC -->|"réseau maison\n192.168.1.0/24"| BOX
+    BOX --> PVE
+    PC -->|"route Windows\nvia 192.168.1.50"| FW
+    PVE --> VMBR0
+    PVE --> VMBR1
+    VMBR0 --> FW
+    VMBR1 --> FW
+    VMBR1 --> SRV
+    VMBR1 --> NAS
+    VMBR1 --> DNS
+    FW -->|"NAT"| INTERNET
+    BOX --> INTERNET

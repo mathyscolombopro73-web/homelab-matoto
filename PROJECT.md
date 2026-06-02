@@ -1,180 +1,93 @@
-\# Projet Homelab MATOTO
+# Projet Homelab MATOTO
 
+## Présentation
 
+Le projet **Homelab MATOTO** consiste à concevoir, déployer et documenter une infrastructure informatique personnelle inspirée d'un environnement professionnel.
 
-\## Présentation du projet
+Ce laboratoire tourne entièrement sur une seule machine physique via **Proxmox VE 9.1**. L'objectif est d'apprendre en pratiquant : tester, casser, réparer, sécuriser et documenter.
 
+---
 
+## Objectifs principaux
 
-Le projet Homelab MATOTO consiste à concevoir, déployer et documenter une infrastructure informatique personnelle inspirée d’un environnement professionnel.
+- Maîtriser la **virtualisation** avec Proxmox VE
+- Configurer un **firewall/routeur** pfSense en VM
+- Créer un **réseau interne isolé** (vmbr1 / 10.20.0.0/24)
+- Déployer des **services Docker** sur Debian
+- Apprendre **TrueNAS et ZFS** pour le stockage
+- Mettre en place un **DNS local** avec Pi-hole
+- Superviser l'infrastructure avec **Grafana + Prometheus**
+- Versionner les configs avec **Gitea**
+- Documenter toutes les étapes dans ce dépôt
 
+---
 
+## Périmètre du projet
 
-Ce laboratoire permet de tester des technologies liées au réseau, à la virtualisation, au stockage, à la sécurité, à la supervision et aux sauvegardes.
+### Ce que le projet couvre
 
+- Infrastructure Proxmox sur PC personnel
+- Réseau interne virtualisé (vmbr1)
+- Firewall pfSense en VM
+- Services Docker sur VM Debian
+- Stockage de test avec TrueNAS
+- DNS local filtré (Pi-hole)
+- Monitoring basique (Grafana/Prometheus)
+- Documentation technique complète
 
+### Ce que le projet ne couvre pas
 
-L’objectif principal est d’apprendre en pratiquant : tester, casser, réparer, sécuriser et documenter.
+- Hébergement de services d'entreprise réels
+- Exposition publique de données sensibles
+- Mise en production commerciale
+- Stockage de secrets ou mots de passe dans Git
 
+---
 
+## Contraintes
 
-\## Nom du projet
+| Contrainte           | Détail                                      |
+|----------------------|---------------------------------------------|
+| Infrastructure       | Une seule machine physique (Proxmox)        |
+| Réseau maison        | 192.168.1.0/24 — box opérateur non maîtrisée |
+| WAN pfSense          | Réseau privé 192.168.1.0/24 (pas l'Internet direct) |
+| Sécurité dépôt       | Aucun secret réel dans Git                  |
+| Objectif             | Apprentissage, pas production               |
 
+---
 
+## Architecture technique
 
-`homelab.matoto.local`
+| Composant | Rôle                  | Système        | IP              |
+|-----------|-----------------------|----------------|-----------------|
+| `pve-01`  | Hyperviseur           | Proxmox VE 9.1 | DHCP 192.168.1.X |
+| `fw-01`   | Firewall / routeur    | pfSense        | WAN: 192.168.1.50 / LAN: 10.20.0.1 |
+| `srv-02`  | Services applicatifs  | Debian + Docker | 10.20.0.20     |
+| `nas-01`  | Stockage de test      | TrueNAS        | 10.20.0.30      |
+| `dns-01`  | DNS local             | Pi-hole (LXC)  | 10.20.0.40      |
 
+---
 
+## Critères de réussite
 
-\## Version
+- [ ] Proxmox VE 9.1 installé et accessible via l'interface web (port 8006)
+- [ ] Bridge `vmbr1` créé et fonctionnel sur Proxmox
+- [ ] pfSense accessible depuis le réseau maison (WAN) et le réseau lab (LAN)
+- [ ] DHCP pfSense distribue des IP dans 10.20.0.100–200
+- [ ] srv-02 pinge pfSense et a accès à Internet
+- [ ] DNS local (Pi-hole) fonctionne sur dns-01
+- [ ] Docker opérationnel sur srv-02 avec au moins Portainer et Uptime Kuma
+- [ ] TrueNAS accessible et pool ZFS de test créé
+- [ ] PC principal accède à 10.20.0.0/24 via la route Windows
+- [ ] Toute la documentation est à jour dans ce dépôt
 
+---
 
+## Livrables
 
-\- Topologie : v3.2
-
-\- Dernier déploiement prévu : 2026-04-22
-
-
-
-\## Objectifs principaux
-
-
-
-\- Mettre en place une architecture réseau segmentée avec VLAN.
-
-\- Déployer un firewall pfSense.
-
-\- Créer une infrastructure de virtualisation avec Proxmox VE.
-
-\- Héberger des services avec Docker.
-
-\- Mettre en place un stockage centralisé avec TrueNAS et ZFS.
-
-\- Configurer un DNS local avec Pi-hole.
-
-\- Mettre en place un accès distant sécurisé avec WireGuard.
-
-\- Superviser l’infrastructure avec Grafana.
-
-\- Versionner la documentation et les configurations avec Gitea/GitHub.
-
-\- Mettre en place une stratégie de sauvegarde avec restic.
-
-
-
-\## Périmètre du projet
-
-
-
-Le projet couvre :
-
-
-
-\- le réseau local ;
-
-\- les VLAN ;
-
-\- le firewall ;
-
-\- les machines virtuelles ;
-
-\- les conteneurs ;
-
-\- le stockage ;
-
-\- le monitoring ;
-
-\- les sauvegardes ;
-
-\- la documentation technique.
-
-
-
-Le projet ne couvre pas :
-
-
-
-\- l’hébergement de services critiques pour une entreprise réelle ;
-
-\- l’exposition publique de données sensibles ;
-
-\- la mise en production commerciale ;
-
-\- le stockage de secrets dans le dépôt Git.
-
-
-
-\## Architecture cible
-
-
-
-L’infrastructure sera composée de :
-
-
-
-| Élément | Rôle |
-
-|---|---|
-
-| Internet | Accès externe |
-
-| pfSense | Firewall, NAT, routage, VPN |
-
-| Switch L2 managé | Segmentation VLAN 802.1Q |
-
-| Proxmox VE | Virtualisation |
-
-| Debian Docker | Services applicatifs |
-
-| TrueNAS | Stockage centralisé |
-
-| Pi-hole | DNS local |
-
-| WireGuard | VPN |
-
-| Grafana | Supervision |
-
-| Gitea | Forge Git |
-
-| restic | Sauvegardes |
-
-
-
-\## Topologie simplifiée
-
-
-
-```text
-
-Internet
-
-&#x20;  |
-
-\[ pfSense Firewall ]
-
-&#x20;  |
-
-\[ Switch L2 managé 802.1Q ]
-
-&#x20;  |
-
-&#x20;  +-- VLAN 10 LAN
-
-&#x20;  +-- VLAN 20 SRV
-
-&#x20;  +-- VLAN 30 IOT
-
-&#x20;  +-- VLAN 99 DMZ
-
-&#x20;  |
-
-&#x20;  +-- pve-01   Proxmox VE
-
-&#x20;  +-- srv-02   Debian + Docker
-
-&#x20;  +-- nas-01   TrueNAS
-
-
-
-
-
+- Documentation technique complète dans ce dépôt
+- Scripts d'installation automatisés (idempotents)
+- Fichiers `docker-compose.yml` prêts à l'emploi
+- Procédures pas à pas pour chaque composant
+- Checklists de validation
+- Guide de dépannage

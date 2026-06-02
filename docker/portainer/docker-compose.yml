@@ -1,0 +1,27 @@
+# Portainer — Interface web de gestion Docker
+# URL : http://10.20.0.20:9000
+# Première connexion : créer un compte admin dans les 5 minutes
+
+services:
+  portainer:
+    image: portainer/portainer-ce:latest
+    container_name: portainer
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    ports:
+      - "9000:9000"
+      - "9443:9443"   # HTTPS optionnel
+    volumes:
+      # Socket Docker pour gérer les conteneurs locaux
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      # Données Portainer persistantes
+      - portainer_data:/data
+
+volumes:
+  portainer_data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /opt/homelab/portainer
